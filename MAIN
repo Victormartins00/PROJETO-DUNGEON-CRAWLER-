@@ -1,0 +1,47 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+int main() {
+    int option = 0;
+
+    printf("==================================================\n");
+    printf("|                                                |\n");
+    printf("|              BEM-VINDO AO DUNGEON CRAWLER        |\n");
+    printf("|                                                |\n");
+    printf("|   ____                 __                       |\n");
+    printf("|  / __/__ ___ _________/ /__ __ __              |\n");
+    printf("| _\\ \\/ -_) _ `/ __/ __/  '_// // /              |\n");
+    printf("|/___/\\__/\\_,_/_/  \\__/\\_\\ /\\_, /               |\n");
+    printf("|                            /___/                |\n");
+    printf("|                                                |\n");
+    printf("==================================================\n");
+
+    // Menu principal
+    while (option != 3) {
+        printf("\nO que deseja fazer?\n");
+        printf("1. Iniciar jogo\n");
+        printf("2. Tutorial\n");
+        printf("3. Sair\n");
+        printf("Digite sua opçao: ");
+        scanf("%d", &option);
+
+        switch (option) {
+            case 1:
+                // Iniciar jogo
+                printf("\nIniciando jogo...\n");
+                break;
+            case 2:
+                // Tutorial
+                printf("\nTutorial...\n");
+                break;
+            case 3:
+                // Sair
+                printf("\nEncerrando jogo...\n");
+                break;
+            default:
+                printf("\nOpção inválida, tente novamente.\n");
+        }
+    }
+
+    return 0;
+}
