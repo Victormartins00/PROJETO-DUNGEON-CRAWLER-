@@ -1,5 +1,89 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
+#include <conio.h>
+
+#define FASE_DIM 15
+
+typedef struct {
+    int x, y;
+} Posicao;
+
+typedef enum {
+    VAZIO,
+    PAREDE,
+    CHAVE,
+    PORTA,
+    JOGADOR
+} Elemento;
+
+// matriz que representa a fase
+Elemento fase[FASE_DIM][FASE_DIM];
+
+// posição do jogador
+Posicao jogador_pos;
+
+// posição da chave
+Posicao chave_pos;
+
+// posição da porta
+Posicao porta_pos;
+
+// função que imprime a fase
+void imprimirFase() {
+    system("cls"); // limpa a tela
+    for(int i = 0; i < FASE_DIM; i++) {
+        for(int j = 0; j < FASE_DIM; j++) {
+            switch(fase[i][j]) {
+                case VAZIO:
+                    printf(" ");
+                    break;
+                case PAREDE:
+                    printf("#");
+                    break;
+                case CHAVE:
+                    printf("K");
+                    break;
+                case PORTA:
+                    printf("P");
+                    break;
+                case JOGADOR:
+                    printf("J");
+                    break;
+            }
+        }
+        printf("\n");
+    }
+}
+
+// função que verifica se uma posição é válida
+bool posicaoValida(Posicao pos) {
+    return pos.x >= 0 && pos.x < FASE_DIM && pos.y >= 0 && pos.y < FASE_DIM;
+}
+
+// função que verifica se o jogador pode se mover para uma posição
+bool podeMover(Posicao pos) {
+    if(!posicaoValida(pos)) {
+        return false;
+    }
+    switch(fase[pos.x][pos.y]) {
+        case VAZIO:
+        case CHAVE:
+        case PORTA:
+            return true;
+        default:
+            return false;
+    }
+}
+
+// função que move o jogador para uma posição
+void moverJogador(Posicao pos) {
+    fase[jogador_pos.x][jogador_pos.y] = VAZIO;
+    fase[pos.x][pos.y] = JOGADOR;
+    jogador_pos = pos;
+}
 
 int main() {
     int option = 0;
@@ -27,21 +111,91 @@ int main() {
 
         switch (option) {
             case 1:
-                // Iniciar jogo
-                printf("\nIniciando jogo...\n");
+               
+                
+    for(int i = 0; i < FASE_DIM; i++) {
+        for(int j = 0; j < FASE_DIM; j++) {
+            if(i == 0 || i == FASE_DIM - 1 || j == 0 || j == FASE_DIM - 1) {
+                fase[i][j] = PAREDE;
+            } else {
+                fase[i][j] = VAZIO;
+            }
+        }
+    }
+
+    // define a posição do jogador
+    jogador_pos.x = 1;
+    jogador_pos.y = 1;
+    fase[jogador_pos.x][jogador_pos.y] = JOGADOR;
+
+    // define a posição da chave
+    chave_pos.x = 7;
+    chave_pos.y = 7;
+    fase[chave_pos.x][chave_pos.y] = CHAVE;
+
+    // define a posição da porta
+    porta_pos.x = 13;
+    porta_pos.y = 13;
+    fase[porta_pos.x][porta_pos.y] = PORTA;
+
+    imprimirFase();
+
+    char tecla;
+    while(true) {
+        tecla = getch();
+        switch(tecla) {
+            case 'w':
+            case 'W':
+                if(podeMover((Posicao){jogador_pos.x - 1, jogador_pos.y})) {
+moverJogador((Posicao){jogador_pos.x - 1, jogador_pos.y});
+}
+break;
+case 'a':
+case 'A':
+if(podeMover((Posicao){jogador_pos.x, jogador_pos.y - 1})) {
+moverJogador((Posicao){jogador_pos.x, jogador_pos.y - 1});
+}
+break;
+case 's':
+case 'S':
+if(podeMover((Posicao){jogador_pos.x + 1, jogador_pos.y})) {
+moverJogador((Posicao){jogador_pos.x + 1, jogador_pos.y});
+}
+break;
+case 'd':
+case 'D':
+if(podeMover((Posicao){jogador_pos.x, jogador_pos.y + 1})) {
+moverJogador((Posicao){jogador_pos.x, jogador_pos.y + 1});
+}
+break;
+case 'i':
+case 'I':
+if(jogador_pos.x == chave_pos.x && jogador_pos.y == chave_pos.y) {
+fase[chave_pos.x][chave_pos.y] = VAZIO;
+// Aqui você pode implementar o que deve acontecer quando o jogador pegar a chave.
+} else if(jogador_pos.x == porta_pos.x && jogador_pos.y == porta_pos.y) {
+// Aqui você pode implementar o que deve acontecer quando o jogador chegar à porta.
+}
+break;
+}
+imprimirFase();
+}
+
+
                 break;
             case 2:
-                // Tutorial
+              
                 printf("\nTutorial...\n");
                 break;
             case 3:
-                // Sair
+               
                 printf("\nEncerrando jogo...\n");
                 break;
             default:
-                printf("\nOpção inválida, tente novamente.\n");
+                printf("\nOpçao invalida, tente novamente.\n");
         }
     }
+   
 
     return 0;
 }
