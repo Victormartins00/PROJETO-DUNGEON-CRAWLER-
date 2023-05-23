@@ -1,47 +1,109 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include <stdbool.h>
+#include <unistd.h>
 #include <conio.h>
+#include <windows.h>
+#include <time.h>
 
+//DEFINE FASE 1 
 #define FASE_DIM 15
+
+//DEFINE FASE 2
+#define FASE_DIM2 30
+#define VAZIOO ' '
+#define PAREDEE '#'
+#define JOGADORR 'J'
+#define CHAVEE 'C'
+#define PORTAA 'P'
+#define ESPINHOSS '*'
+#define MONSTROO 'M'
+#define BOTAOO 'B'
+
+//DEFINE FASE 3
+
+#define FASE_DIM3 60
+#define VAZIO3 ' '
+#define PAREDE3 '*'   // Caractere Unicode para uma parede sólida
+#define JOGADOR3 'J'
+#define CHAVE3 'C'
+#define PORTA3 'P'
+#define ESPINHOS3 '#'
+#define MONSTRO3 'K'
+#define PORTAL3 '>'
 
 typedef struct {
     int x, y;
 } Posicao;
 
+//STRUCT FASE 1 
 typedef enum {
     VAZIO,
     PAREDE,
     CHAVE,
     PORTA,
-    JOGADOR
+    JOGADOR,
+    ESPINHOS
 } Elemento;
 
-// matriz que representa a fase
-Elemento fase[FASE_DIM][FASE_DIM];
+//FUNÇÕES FASE 3
+char fase3[FASE_DIM3][FASE_DIM3];
+Posicao jogador_pos3;
+Posicao chave_pos3;
+Posicao porta_pos3;
+Posicao espinhos_pos3[100];
+Posicao monstro_pos3;
+Posicao portal1_pos;
+Posicao portal2_pos;
+Posicao portal3_pos;
+Posicao portal4_pos;
+int vida_jogador3;
+bool temChave3;
 
+// Variáveis de velocidade
+int jogador_velocidade = 1;  // Velocidade do jogador (quanto menor, mais rápido)
+int monstro_velocidade = 2;  // Velocidade do monstro (quanto menor, mais rápido)
+int contador3 = 0;            // Contador para controlar a velocidade do monstro
+
+
+//FUNÇÕES FASE 2
+char fase2[FASE_DIM2][FASE_DIM2];
+Posicao jogador_pos2;
+Posicao chave_pos2;
+Posicao porta_pos2;
+Posicao espinhos_pos2[60];
+Posicao monstro_pos2;
+Posicao botao_pos2;
+int vida_jogador2;
+bool espinhos_ativos2;
+
+//FUNÇÕES FASE 1
+
+// matriz que representa a fase
+Elemento fase1[FASE_DIM][FASE_DIM];
 // posição do jogador
 Posicao jogador_pos;
-
 // posição da chave
 Posicao chave_pos;
-
 // posição da porta
 Posicao porta_pos;
+// posições dos espinhos
+Posicao espinhos_pos[0];
+
+int vitoria = 0;
 
 // função que imprime a fase
 void imprimirFase() {
-    system("cls"); // limpa a tela
-    for(int i = 0; i < FASE_DIM; i++) {
-        for(int j = 0; j < FASE_DIM; j++) {
-            switch(fase[i][j]) {
+    system("cls");
+
+    for (int i = 0; i < FASE_DIM; i++) {
+        for (int j = 0; j < FASE_DIM; j++) {
+            switch (fase2[i][j]) {
                 case VAZIO:
                     printf(" ");
                     break;
                 case PAREDE:
-                    printf("#");
+                    printf("*");
                     break;
                 case CHAVE:
                     printf("K");
@@ -51,6 +113,9 @@ void imprimirFase() {
                     break;
                 case JOGADOR:
                     printf("J");
+                    break;
+                case ESPINHOS:
+                    printf("#");
                     break;
             }
         }
@@ -65,10 +130,11 @@ bool posicaoValida(Posicao pos) {
 
 // função que verifica se o jogador pode se mover para uma posição
 bool podeMover(Posicao pos) {
-    if(!posicaoValida(pos)) {
+    if (!posicaoValida(pos)) {
         return false;
     }
-    switch(fase[pos.x][pos.y]) {
+
+    switch (fase2[pos.x][pos.y]) {
         case VAZIO:
         case CHAVE:
         case PORTA:
@@ -78,15 +144,259 @@ bool podeMover(Posicao pos) {
     }
 }
 
+
 // função que move o jogador para uma posição
 void moverJogador(Posicao pos) {
-    fase[jogador_pos.x][jogador_pos.y] = VAZIO;
-    fase[pos.x][pos.y] = JOGADOR;
+    if (pos.x == porta_pos.x && pos.y == porta_pos.y) {
+        if (fase2[chave_pos.x][chave_pos.y] != VAZIO) {
+             printf("O jogador precisa pegar a chave antes de chegar a porta!\n");
+              fflush(stdout); // Limpar o buffer de saída antes do atraso
+            sleep(1.7);
+            return;
+            
+        }
+    }
+
+    fase2[jogador_pos.x][jogador_pos.y] = VAZIO;
+    fase2[pos.x][pos.y] = JOGADOR;
     jogador_pos = pos;
+
+    if (jogador_pos.x == chave_pos.x && jogador_pos.y == chave_pos.y) {
+        fase2[chave_pos.x][chave_pos.y] = VAZIO;
+        printf("Jogador pegou a chave!\n");
+    } else if (jogador_pos.x == porta_pos.x && jogador_pos.y == porta_pos.y) {
+        if (fase2[chave_pos.x][chave_pos.y] == VAZIO) {
+            printf("Jogador abriu a porta e venceu o jogo!\n");
+        } 
+        
+    }
 }
 
+// função que verifica colisão com os espinhos
+bool colisaoEspinhos(Posicao pos) {
+    for (int i = 0; i < 0; i++) {
+        if (pos.x == espinhos_pos[i].x && pos.y == espinhos_pos[i].y) {
+            return true;
+        }
+    }
+    return false;
+}
+
+// função para atualizar a próxima fase
+void atualizarProximaFase() {
+    // Limpar a fase atual
+    for (int i = 0; i < FASE_DIM; i++) {
+        for (int j = 0; j < FASE_DIM; j++) {
+            fase2[i][j] = VAZIO;
+        }
+    }
+}
+  
+void aguardarEntrada() {
+    printf("Aperte qualquer tecla para avancar para a proxima fase.\n");
+    char buffer[256];
+    scanf("%s", buffer);
+}
+
+//FASE 2 
+// Função que imprime a fase
+void imprimirFase2() {
+    system("cls"); // Limpa a tela (funciona em sistemas Windows)
+
+    for (int i = 0; i < FASE_DIM2; i++) {
+        for (int j = 0; j < FASE_DIM2; j++) {
+            printf("%c ", fase2[i][j]);
+        }
+        printf("\n");
+    }
+
+    printf("Vidas restantes: %d\n", vida_jogador2);
+}
+
+// Função que verifica se uma posição é válida (não está fora dos limites ou é uma parede)
+bool posicaoValida2(Posicao pos) {
+    if (pos.x < 0 || pos.x >= FASE_DIM2 || pos.y < 0 || pos.y >= FASE_DIM2 || fase2[pos.x][pos.y] == PAREDEE) {
+        return false;
+    }
+    return true;
+}
+
+// Função que verifica se o jogador pode se mover para uma posição
+bool podeMover2(Posicao pos2) {
+    if (!posicaoValida2(pos2)) {
+        return false;
+    }
+    return true;
+}
+
+// Função que move o jogador para uma posição
+void moverJogador2(Posicao pos2) {
+    fase2[jogador_pos2.x][jogador_pos2.y] = VAZIOO;
+    jogador_pos2.x = pos2.x;
+    jogador_pos2.y = pos2.y;
+    fase2[jogador_pos2.x][jogador_pos2.y] = JOGADORR;
+}
+
+// Função que move o monstro para um lado e para o outro
+void moverMonstro2() {
+    static int direcao = -1; // -1 indica movimento para a esquerda, 1 indica movimento para a direita
+
+    // Verifica se o monstro pode se mover na direção atual
+    if (posicaoValida2((Posicao){monstro_pos2.x, monstro_pos2.y + direcao})) {
+        fase2[monstro_pos2.x][monstro_pos2.y] = VAZIOO;
+        monstro_pos2.y += direcao;
+        fase2[monstro_pos2.x][monstro_pos2.y] = MONSTROO;
+    } else {
+        // Inverte a direção caso o monstro não possa se mover na direção atual
+        direcao *= -1;
+    }
+}
+
+//FASE 3
+
+
+// Função que imprime a fase
+void imprimirFase3() {
+    system("cls"); // Limpa a tela (funciona em sistemas Windows)
+
+    for (int i = 0; i < FASE_DIM3; i++) {
+        for (int j = 0; j < FASE_DIM3; j++) {
+            if (fase3[i][j] == PAREDE3) {
+                printf("%lc%lc", PAREDE3, PAREDE3);  // Imprime o caractere Unicode da parede
+            } else {
+                printf("%c ", fase3[i][j]);
+            }
+        }
+        printf("\n");
+    }
+
+    printf("Vidas restantes: %d\n", vida_jogador3);
+}
+
+// Função que atualiza uma posição no mapa
+void atualizarPosicao3(Posicao pos3, char caracter) {
+    COORD coord;
+    coord.X = pos3.y * 2;
+    coord.Y = pos3.x;
+    SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), coord);
+    printf("%c", caracter);
+}
+
+// Função chamada quando ocorre uma colisão entre o jogador e o monstro
+void colisaoMonstro3() {
+    printf("Você colidiu com o monstro!\n");
+    vida_jogador3--;
+    printf("Você perdeu uma vida! Vidas restantes: %d\n", vida_jogador3);
+    Sleep(1000);
+    if (vida_jogador3 == 0) {
+        printf("Você perdeu!\n");
+        exit(0);
+    }
+}
+
+// Função que verifica se uma posição é válida (não está fora dos limites ou é uma parede)
+bool posicaoValida3(Posicao pos3) {
+    if (pos3.x < 0 || pos3.x >= FASE_DIM3 || pos3.y < 0 || pos3.y >= FASE_DIM3 || fase3[pos3.x][pos3.y] == PAREDE3) {
+        return false;
+    }
+    return true;
+}
+
+// Função que verifica se o jogador pode se mover para uma posição
+bool podeMover3(Posicao pos3) {
+    if (!posicaoValida3(pos3)) {
+        return false;
+    }
+    return true;
+}
+
+void moverJogador3(Posicao pos3) {
+    if (fase3[pos3.x][pos3.y] == CHAVE3) {
+        printf("Você encontrou a chave!\n");
+        Sleep(1000);
+        temChave3 = true;
+    } else if (fase3[pos3.x][pos3.y] == PORTA3 && !temChave3) {
+        printf("A porta está trancada! Você precisa encontrar a chave primeiro.\n");
+        return;
+    }
+
+    if (fase3[jogador_pos3.x][jogador_pos3.y] != PORTAL3) {
+        fase3[jogador_pos3.x][jogador_pos3.y] = VAZIO3;
+    }
+
+    jogador_pos3.x = pos3.x;
+    jogador_pos3.y = pos3.y;
+    fase3[jogador_pos3.x][jogador_pos3.y] = JOGADOR3;
+}
+
+// Função que move o monstro para seguir o jogador
+void moverMonstro3() {
+    // Verificar a velocidade do monstro com base no contador
+    if (contador3 % monstro_velocidade == 0) {
+        int direcao_x = (jogador_pos3.x > monstro_pos3.x) ? 1 : -1;
+        int direcao_y = (jogador_pos3.y > monstro_pos3.y) ? 1 : -1;
+
+        // Verifica se o monstro pode se mover na direção atual
+        if (posicaoValida3((Posicao){monstro_pos3.x + direcao_x, monstro_pos3.y})) {
+            fase3[monstro_pos3.x][monstro_pos3.y] = VAZIO3;
+            monstro_pos3.x += direcao_x;
+            fase3[monstro_pos3.x][monstro_pos3.y] = MONSTRO3;
+        }
+
+        if (posicaoValida3((Posicao){monstro_pos3.x, monstro_pos3.y + direcao_y})) {
+            fase3[monstro_pos3.x][monstro_pos3.y] = VAZIO3;
+            monstro_pos3.y += direcao_y;
+            fase3[monstro_pos3.x][monstro_pos3.y] = MONSTRO3;
+        }
+    }
+
+    contador3++;
+}
+
+// Função que move o jogador através de um portal
+void moverPortal3(Posicao *pos3) {
+    if (pos3->x == portal1_pos.x && pos3->y == portal1_pos.y) {
+        pos3->x = portal2_pos.x;
+        pos3->y = portal2_pos.y;
+    } else if (pos3->x == portal2_pos.x && pos3->y == portal2_pos.y) {
+        pos3->x = portal1_pos.x;
+        pos3->y = portal1_pos.y;
+    } else if (pos3->x == portal3_pos.x && pos3->y == portal3_pos.y) {
+        pos3->x = portal4_pos.x;
+        pos3->y = portal4_pos.y;
+    } else if (pos3->x == portal4_pos.x && pos3->y == portal4_pos.y) {
+        pos3->x = portal3_pos.x;
+        pos3->y = portal3_pos.y;
+    }
+    
+    fase3[portal1_pos.x][portal1_pos.y] = PORTAL3;  // Atualiza o portal 1 no mapa
+    fase3[portal2_pos.x][portal2_pos.y] = PORTAL3;  // Atualiza o portal 2 no mapa
+    fase3[portal3_pos.x][portal3_pos.y] = PORTAL3;  // Atualiza o portal 3 no mapa
+    fase3[portal4_pos.x][portal4_pos.y] = PORTAL3;  // Atualiza o portal 4 no mapa
+}
+
+
+// Função para jogar novamente
+bool jogarNovamente3() {
+    printf("Deseja jogar novamente? (sim/nao) ");
+    char resposta = _getch();
+    return (resposta == 's' || resposta == 'S');
+}
+
+
+
+
+
+
+
 int main() {
-    int option = 0;
+int option = 0;
+int morreuEspinhos = 1; // Variável para verificar se o jogador passou pela porta (exemplo: 1 = passou, 0 = não passou)
+    char opcao;
+     srand(time(NULL));
+    bool jogar_novamente = true;
+
+
 
     printf("==================================================\n");
     printf("|                                                |\n");
@@ -100,102 +410,470 @@ int main() {
     printf("|                                                |\n");
     printf("==================================================\n");
 
-    // Menu principal
-    while (option != 3) {
-        printf("\nO que deseja fazer?\n");
-        printf("1. Iniciar jogo\n");
-        printf("2. Tutorial\n");
-        printf("3. Sair\n");
-        printf("Digite sua opçao: ");
-        scanf("%d", &option);
+// Menu principal
+while (option != 3) {
+    printf("\nO que deseja fazer?\n");
+    printf("1. Iniciar jogo\n");
+    printf("2. Tutorial\n");
+    printf("3. Sair\n");
+    printf("Digite sua opcao: ");
+    scanf("%d", &option);
 
-        switch (option) {
-            case 1:
-               
+    switch (option) {
+        case 1:
+        	
+        
+            // Configurar a primeira fase
+            for (int i = 0; i < FASE_DIM; i++) {
+                for (int j = 0; j < FASE_DIM; j++) {
+                    if (i == 0 || i == FASE_DIM - 1 || j == 0 || j == FASE_DIM - 1) {
+                        fase2[i][j] = PAREDE;
+                    } else {
+                        fase2[i][j] = VAZIO;
+                    }
+                }
+            }
+
+            // Definir a posição do jogador
+            jogador_pos.x = 1;
+            jogador_pos.y = 1;
+            fase2[jogador_pos.x][jogador_pos.y] = JOGADOR;
+
+            // Definir a posição da chave
+chave_pos.x = 7;
+chave_pos.y = 7;
+fase2[chave_pos.x][chave_pos.y] = CHAVE;
+
+
+            // Definir a posição da porta
+            porta_pos.x = 13;
+            porta_pos.y = 13;
+            fase2[porta_pos.x][porta_pos.y] = PORTA;
+
+            // Definir as posições dos espinhos
+            espinhos_pos[0].x = 4;
+            espinhos_pos[0].y = 4;
+            espinhos_pos[1].x = 8;
+            espinhos_pos[1].y = 10;
+            espinhos_pos[2].x = 12;
+            espinhos_pos[2].y = 6;
+
+            imprimirFase();
+
+            int vidas = 3;
+
+            while (vidas > 0 && vitoria == 0) {
+                printf("O jogador agora tem %d vidas.\n", vidas);
+
+                char tecla;
+                tecla = getch();
+
+                Posicao proxima_posicao;
                 
-    for(int i = 0; i < FASE_DIM; i++) {
-        for(int j = 0; j < FASE_DIM; j++) {
-            if(i == 0 || i == FASE_DIM - 1 || j == 0 || j == FASE_DIM - 1) {
-                fase[i][j] = PAREDE;
-            } else {
-                fase[i][j] = VAZIO;
+                
+
+                switch (tecla) {
+                    case 'w':
+                    case 'W':
+                        proxima_posicao.x = jogador_pos.x - 1;
+                        proxima_posicao.y = jogador_pos.y;
+                        break;
+                    case 'a':
+                    case 'A':
+                        proxima_posicao.x = jogador_pos.x;
+                        proxima_posicao.y = jogador_pos.y - 1;
+                        break;
+                    case 's':
+                    case 'S':
+                        proxima_posicao.x = jogador_pos.x + 1;
+                        proxima_posicao.y = jogador_pos.y;
+                        break;
+                    case 'd':
+                    case 'D':
+                        proxima_posicao.x = jogador_pos.x;
+                        proxima_posicao.y = jogador_pos.y + 1;
+                        break;
+                    case 'i':
+                    case 'I':
+                        // Verificar se o jogador está na posição da chave
+                        if (jogador_pos.x == chave_pos.x && jogador_pos.y == chave_pos.y) {
+                            fase2[chave_pos.x][chave_pos.y] = VAZIO;
+                            printf("Jogador pegou a chave!\n");
+                            Sleep(500);
+                          
+                        } else if (jogador_pos.x == porta_pos.x && jogador_pos.y == porta_pos.y) {
+                            if (vidas < 3) {
+                                vidas += 2;
+                                printf("Jogador ganhou 2 vidas!\n");
+                            } else {
+                                printf("Jogador não pode ganhar mais vidas!\n");
+                            }
+                        }
+                        break;
+                }
+
+                if (posicaoValida(proxima_posicao) && podeMover(proxima_posicao) && !colisaoEspinhos(proxima_posicao)) {
+                    moverJogador(proxima_posicao);
+                }
+
+                if (colisaoEspinhos(jogador_pos)) {
+                    vidas--;
+                    printf("O jogador colidiu com os espinhos! Vidas restantes: %d\n", vidas);
+                }
+
+                imprimirFase();
+                	if (colisaoEspinhos(proxima_posicao)) {
+    vidas--;
+    printf("O jogador colidiu com os espinhos! Vidas restantes: %d\n", vidas);
+}
+
+
+            if (jogador_pos.x == porta_pos.x && jogador_pos.y == porta_pos.y) {
+                    
+                      while (vidas > 0) {
+        
+
+        if (jogador_pos.x == porta_pos.x && jogador_pos.y == porta_pos.y) {
+            printf("Parabens! O jogador alcancou a porta e venceu o jogo!\n"); 
+            aguardarEntrada();
+            
+            vitoria = 1;
+        }
+                    break;
+                }
+            }
+              }
+            
+            
+            
+             while (true) {
+            
+            int vidas = 3;
+             	
+        // Inicializar a fase
+        for (int i = 0; i < FASE_DIM2; i++) {
+            for (int j = 0; j < FASE_DIM2; j++) {
+                fase2[i][j] = VAZIOO;
             }
         }
+
+        // Adicionar as paredes
+        for (int i = 0; i < FASE_DIM2; i++) {
+            fase2[i][0] = PAREDEE;
+            fase2[i][FASE_DIM2 - 1] = PAREDEE;
+            fase2[0][i] = PAREDEE;
+            fase2[FASE_DIM2 - 1][i] = PAREDEE;
+        }
+
+        // Posição inicial do jogador
+        jogador_pos2.x = 1;
+        jogador_pos2.y = FASE_DIM2 - 2;
+        fase2[jogador_pos2.x][jogador_pos2.y] = JOGADORR;
+
+        // Posição da chave
+        chave_pos2.x = FASE_DIM2 - 2; // Ponta de cima
+        chave_pos2.y = FASE_DIM2 - 2; // Ponta da direita
+        fase2[chave_pos2.x][chave_pos2.y] = CHAVEE;
+
+        // Posição da porta
+        porta_pos2.x = 1; // Ponta de baixo
+        porta_pos2.y = 1; // Ponta da esquerda
+        fase2[porta_pos2.x][porta_pos2.y] = PORTAA;
+
+        // Posições aleatórias dos espinhos
+        for (int i = 0; i < 60; i++) {
+            int espinho_x = rand() % (FASE_DIM2 - 2) + 1;
+            int espinho_y = rand() % (FASE_DIM2 - 2) + 1;
+            espinhos_pos2[i].x = espinho_x;
+            espinhos_pos2[i].y = espinho_y;
+            fase2[espinho_x][espinho_y] = ESPINHOSS;
+        }
+
+        // Posição inicial do monstro
+        monstro_pos2.x = FASE_DIM2 / 2;
+        monstro_pos2.y = FASE_DIM2 / 2;
+        fase2[monstro_pos2.x][monstro_pos2.y] = MONSTROO;
+
+        // Posição do botão
+        botao_pos2.x = FASE_DIM2 - 2; // Ponta de cima
+        botao_pos2.y = 1; // Ponta da esquerda
+        fase2[botao_pos2.x][botao_pos2.y] = BOTAOO;
+
+        // Vida inicial do jogador
+        vida_jogador2 = 3;
+        espinhos_ativos2 = true;
+
+        imprimirFase2();
+
+        // Loop principal do jogo
+        while (true) {
+            if (_kbhit()) {
+                char movimento = _getch();
+                Posicao nova_pos;
+                nova_pos.x = jogador_pos2.x;
+                nova_pos.y = jogador_pos2.y;
+
+                switch (movimento) {
+                    case 'W':
+                    case 'w':
+                        nova_pos.x--;
+                        break;
+                    case 'A':
+                    case 'a':
+                        nova_pos.y--;
+                        break;
+                    case 'S':
+                    case 's':
+                        nova_pos.x++;
+                        break;
+                    case 'D':
+                    case 'd':
+                        nova_pos.y++;
+                        break;
+                    default:
+                        continue;
+                }
+
+                if (podeMover2(nova_pos)) {
+                    if (fase2[nova_pos.x][nova_pos.y] == MONSTROO || (fase2[nova_pos.x][nova_pos.y] == ESPINHOSS && espinhos_ativos2)) {
+                        vida_jogador2--;
+                        printf("Voce perdeu uma vida! Vidas restantes: %d\n", vida_jogador2);
+                        Sleep(2000); // Aguarda 2 segundos antes de continuar
+                        if (vida_jogador2 == 0) {
+                            printf("Voce perdeu o jogo!\n");
+                            Sleep(2000); // Aguarda 2 segundos antes de encerrar
+                             jogar_novamente = jogarNovamente3();
+                             
+                             
+                             
+                             
+                            return 0;
+                        }
+                        moverJogador2(jogador_pos2);
+                    } else if (fase2[nova_pos.x][nova_pos.y] == CHAVEE) {
+                        fase2[chave_pos2.x][chave_pos2.y] = VAZIOO;
+                        chave_pos2.x = -1;
+                        chave_pos2.y = -1;
+                        printf("Voce pegou a chave!\n");
+                        Sleep(2000); // Aguarda 2 segundos antes de continuar
+                        moverJogador2(nova_pos);
+                    } else if (fase2[nova_pos.x][nova_pos.y] == PORTAA) {
+                        if (chave_pos2.x == -1 && chave_pos2.y == -1) {
+                            printf("Voce abriu a porta e venceu o jogo!\n");
+                            Sleep(2000); // Aguarda 2 segundos antes de encerrar
+                            aguardarEntrada();
+                            
+		    
+            while (jogar_novamente) {
+        // Inicializar a fase
+        for (int i = 0; i < FASE_DIM3; i++) {
+            for (int j = 0; j < FASE_DIM3; j++) {
+                fase3[i][j] = VAZIO3;
+            }
+        }
+
+        // Adicionar as paredes
+        for (int i = 0; i < FASE_DIM3; i++) {
+            fase3[i][0] = PAREDE3;
+            fase3[i][FASE_DIM3 - 1] = PAREDE3;
+            fase3[0][i] = PAREDE3;
+            fase3[FASE_DIM3 - 1][i] = PAREDE3;
+        }
+
+        // Posição inicial do jogador
+        jogador_pos3.x = 1;
+        jogador_pos3.y = 1;
+        fase3[jogador_pos3.x][jogador_pos3.y] = JOGADOR3;
+
+        // Posição aleatória da chave
+        chave_pos3.x = 58;
+        chave_pos3.y = 1;
+        fase3[chave_pos3.x][chave_pos3.y] = CHAVE3;
+
+        // Posição aleatória da porta
+        porta_pos3.x = 58;
+        porta_pos3.y = 58;
+        fase3[porta_pos3.x][porta_pos3.y] = PORTA3;
+
+        // Posição aleatória dos espinhos
+        for (int i = 0; i < 100; i++) {
+            espinhos_pos3[i].x = rand() % (FASE_DIM3 - 2) + 1;
+            espinhos_pos3[i].y = rand() % (FASE_DIM3 - 2) + 1;
+            fase3[espinhos_pos3[i].x][espinhos_pos3[i].y] = ESPINHOS3;
+        }
+
+        // Posição aleatória do monstro
+        monstro_pos3.x = rand() % (FASE_DIM3 - 2) + 1;
+        monstro_pos3.y = rand() % (FASE_DIM3 - 2) + 1;
+        fase3[monstro_pos3.x][monstro_pos3.y] = MONSTRO3;
+
+        // Posição aleatória dos portais
+        portal1_pos.x = rand() % (FASE_DIM3 - 2) + 1;
+        portal1_pos.y = rand() % (FASE_DIM3 - 2) + 1;
+        fase3[portal1_pos.x][portal1_pos.y] = PORTAL3;
+
+        portal2_pos.x = rand() % (FASE_DIM3 - 2) + 1;
+        portal2_pos.y = rand() % (FASE_DIM3 - 2) + 1;
+        fase3[portal2_pos.x][portal2_pos.y] = PORTAL3;
+
+        vida_jogador3 = 3;
+        temChave3 = false;
+        contador3 = 0;
+
+        imprimirFase3();
+
+        while (vida_jogador3 > 0) {
+            char tecla = _getch();
+
+            Posicao proxima_pos;
+
+            switch (tecla) {
+                case 'w':
+                case 'W':
+                    proxima_pos.x = jogador_pos3.x - 1;
+                    proxima_pos.y = jogador_pos3.y;
+                    break;
+                case 's':
+                case 'S':
+                    proxima_pos.x = jogador_pos3.x + 1;
+                    proxima_pos.y = jogador_pos3.y;
+                    break;
+                case 'a':
+                case 'A':
+                    proxima_pos.x = jogador_pos3.x;
+                    proxima_pos.y = jogador_pos3.y - 1;
+                    break;
+                case 'd':
+                case 'D':
+                    proxima_pos.x = jogador_pos3.x;
+                    proxima_pos.y = jogador_pos3.y + 1;
+                    break;
+                default:
+                    continue;
+            }
+
+            if (!podeMover3(proxima_pos)) {
+                continue;
+            }
+
+            moverJogador3(proxima_pos);
+
+            if (jogador_pos3.x == chave_pos3.x && jogador_pos3.y == chave_pos3.y) {
+                printf("Você encontrou a chave!\n");
+                Sleep(1000);
+            }
+
+            if (jogador_pos3.x == porta_pos3.x && jogador_pos3.y == porta_pos3.y) {
+                if (temChave3) {
+                    printf("Você encontrou a porta! Parabéns, você venceu! este e o fim do jogo.\n");
+                    break;
+                } else {
+                    printf("A porta está trancada! Você precisa encontrar a chave primeiro.\n");
+                    continue;
+                }
+            }
+
+            for (int i = 0; i < 100; i++) {
+                if (jogador_pos3.x == espinhos_pos3[i].x && jogador_pos3.y == espinhos_pos3[i].y) {
+                    printf("Você caiu em um espinho!\n");
+                    vida_jogador3--;
+                    printf("Você perdeu uma vida! Vidas restantes: %d\n", vida_jogador3);
+                    Sleep(1000);
+                    if (vida_jogador3 == 0) {
+                        printf("Você perdeu!\n");
+                        jogar_novamente = jogarNovamente3();
+                        break;
+                    }
+                    moverJogador3((Posicao){1, 1});
+                    break;
+                }
+            }
+
+            moverMonstro3();
+
+            if (jogador_pos3.x == monstro_pos3.x && jogador_pos3.y == monstro_pos3.y) {
+                colisaoMonstro3();
+                moverJogador3((Posicao){1, 1});
+            }
+
+            moverPortal3(&jogador_pos3);
+
+            imprimirFase3();
+        }
+
+        jogar_novamente = jogarNovamente3();
     }
 
-    // define a posição do jogador
-    jogador_pos.x = 1;
-    jogador_pos.y = 1;
-    fase[jogador_pos.x][jogador_pos.y] = JOGADOR;
+            
+                            return 0;
+                        } else {
+                            printf("Voce precisa encontrar a chave primeiro!\n");
+                            Sleep(2000); // Aguarda 2 segundos antes de continuar
+                            moverJogador2(jogador_pos2);
+                        }
+                    } else if (fase2[nova_pos.x][nova_pos.y] == BOTAOO) {
+                        espinhos_ativos2 = !espinhos_ativos2;
+                        printf("Voce ativou/desativou os espinhos!\n");
+                        Sleep(2000); // Aguarda 2 segundos antes de continuar
+                        moverJogador2(nova_pos);
+                    } else {
+                        moverJogador2(nova_pos);
+                    }
+                }
+            }
 
-    // define a posição da chave
-    chave_pos.x = 7;
-    chave_pos.y = 7;
-    fase[chave_pos.x][chave_pos.y] = CHAVE;
+            moverMonstro2();
+            imprimirFase2();
+            
+             
+                      while (vidas > 0) {
+        
 
-    // define a posição da porta
-    porta_pos.x = 13;
-    porta_pos.y = 13;
-    fase[porta_pos.x][porta_pos.y] = PORTA;
-
-    imprimirFase();
-
-    char tecla;
-    while(true) {
-        tecla = getch();
-        switch(tecla) {
-            case 'w':
-            case 'W':
-                if(podeMover((Posicao){jogador_pos.x - 1, jogador_pos.y})) {
-moverJogador((Posicao){jogador_pos.x - 1, jogador_pos.y});
-}
-break;
-case 'a':
-case 'A':
-if(podeMover((Posicao){jogador_pos.x, jogador_pos.y - 1})) {
-moverJogador((Posicao){jogador_pos.x, jogador_pos.y - 1});
-}
-break;
-case 's':
-case 'S':
-if(podeMover((Posicao){jogador_pos.x + 1, jogador_pos.y})) {
-moverJogador((Posicao){jogador_pos.x + 1, jogador_pos.y});
-}
-break;
-case 'd':
-case 'D':
-if(podeMover((Posicao){jogador_pos.x, jogador_pos.y + 1})) {
-moverJogador((Posicao){jogador_pos.x, jogador_pos.y + 1});
-}
-break;
-case 'i':
-case 'I':
-if(jogador_pos.x == chave_pos.x && jogador_pos.y == chave_pos.y) {
-fase[chave_pos.x][chave_pos.y] = VAZIO;
-// Aqui você pode implementar o que deve acontecer quando o jogador pegar a chave.
-} else if(jogador_pos.x == porta_pos.x && jogador_pos.y == porta_pos.y) {
-// Aqui você pode implementar o que deve acontecer quando o jogador chegar à porta.
-}
-break;
-}
-imprimirFase();
-}
-
-
-                break;
+        if (jogador_pos2.x == porta_pos2.x && jogador_pos2.y == porta_pos2.y) {
+            printf("Parabens! O jogador alcancou a porta e venceu o jogo!\n"); 
+            aguardarEntrada();
+            
+            vitoria = 1;
+        }
+                    break;
+                }
+           
+           
+          
+             
+           
+        }
+        
+        
+    }
+    
+      
+               
+               
+           break;
             case 2:
-              
-                printf("\nTutorial...\n");
+    printf("========================================\n");
+    printf("             Tutorial do Jogo           \n");
+    printf("========================================\n");
+    printf("\n");
+    printf("Bem-vindo ao Jogo!\n");
+    printf("\n");
+    printf("O objetivo do jogo é chegar à porta (P) evitando os espinhos (E).\n");
+    printf("Use as teclas W, A, S e D para mover o jogador (J) para cima, esquerda, baixo e direita, respectivamente.\n");
+    printf("Pressione a tecla I para interagir com os elementos do jogo (pegar a chave e abrir a porta).\n");
+    printf("\n");
+    printf("Boa sorte!\n");
+    printf("\n");
+    printf("========================================\n");
+    printf("\n");
                 break;
             case 3:
-               
                 printf("\nEncerrando jogo...\n");
                 break;
             default:
                 printf("\nOpçao invalida, tente novamente.\n");
         }
     }
-   
 
     return 0;
 }
