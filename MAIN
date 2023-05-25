@@ -752,20 +752,24 @@ fase2[chave_pos.x][chave_pos.y] = CHAVE;
                     continue;
             }
 
+                       // Verifica se o jogador pode se mover para a próxima posição
             if (!podeMover3(proxima_pos)) {
                 continue;
             }
 
+            // Move o jogador para a próxima posição
             moverJogador3(proxima_pos);
 
+            // Verifica se o jogador encontrou a chave
             if (jogador_pos3.x == chave_pos3.x && jogador_pos3.y == chave_pos3.y) {
                 printf("Você encontrou a chave!\n");
                 Sleep(1000);
             }
 
+            // Verifica se o jogador chegou à porta
             if (jogador_pos3.x == porta_pos3.x && jogador_pos3.y == porta_pos3.y) {
                 if (temChave3) {
-                    printf("Você encontrou a porta! Parabéns, você venceu! este e o fim do jogo.\n");
+                    printf("Você encontrou a porta! Parabéns, você venceu! Este é o fim do jogo.\n");
                     break;
                 } else {
                     printf("A porta está trancada! Você precisa encontrar a chave primeiro.\n");
@@ -773,6 +777,7 @@ fase2[chave_pos.x][chave_pos.y] = CHAVE;
                 }
             }
 
+            // Verifica se o jogador caiu em um espinho
             for (int i = 0; i < 100; i++) {
                 if (jogador_pos3.x == espinhos_pos3[i].x && jogador_pos3.y == espinhos_pos3[i].y) {
                     printf("Você caiu em um espinho!\n");
@@ -789,18 +794,23 @@ fase2[chave_pos.x][chave_pos.y] = CHAVE;
                 }
             }
 
+            // Move o monstro
             moverMonstro3();
 
+            // Verifica se houve colisão entre o jogador e o monstro
             if (jogador_pos3.x == monstro_pos3.x && jogador_pos3.y == monstro_pos3.y) {
                 colisaoMonstro3();
                 moverJogador3((Posicao){1, 1});
             }
 
+            // Move o jogador através de um portal
             moverPortal3(&jogador_pos3);
 
+            // Imprime a fase atual do jogo
             imprimirFase3();
         }
 
+        // Pergunta se o jogador deseja jogar novamente
         jogar_novamente = jogarNovamente3();
     }
 
